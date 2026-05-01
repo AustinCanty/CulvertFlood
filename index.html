@@ -41,7 +41,7 @@
     #app{display:grid;grid-template-rows:auto 1fr;height:100vh}
     header{
       display:flex;align-items:center;justify-content:space-between;
-      padding:16px 26px;border-bottom:1px solid var(--border);
+      padding:16px 26px;border-bottom:0px solid var(--border);
       background:#113F5D;
       backdrop-filter:blur(10px);
     }
@@ -76,7 +76,7 @@
 
     aside#controls{
       border-left:1px solid var(--border);background:var(--bg-2);
-      overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px;
+      overflow-y:auto;padding:0 22px 22px 22px;display:flex;flex-direction:column;gap:16px;
     }
     .card{border:1px solid var(--border);background:var(--panel);border-radius:2px;padding:16px 18px}
     .card.accent{background:linear-gradient(145deg,#152235,#0f1826);border-color:var(--border-strong)}
@@ -220,19 +220,9 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head"><div class="card-title">Snapshot Scenarios</div><div class="card-tag">CLICK TO JUMP</div></div>
-        <div class="presets" id="presets"></div>
-      </div>
+     
 
-      <div class="card">
-        <div class="card-head"><div class="card-title">Embankment View</div><div class="card-tag">3D ONLY</div></div>
-        <div class="view-toggle">
-          <button class="view-btn active" id="view-xray">X-RAY</button>
-          <button class="view-btn" id="view-solid">SOLID</button>
-        </div>
-        <div class="view-hint">X-ray mode renders the road fill translucent so the culvert and the water level inside it are visible. Switch to solid for presentation screenshots.</div>
-      </div>
+    
 
       <div class="card">
         <div class="card-head"><div class="card-title">Longitudinal Profile</div><div class="card-tag">W &nbsp;←→&nbsp; E</div></div>
@@ -607,7 +597,6 @@ function updateWater(wl){
   foamNorth.visible = foamSouth.visible = overtopped;
   renderUI();
   renderProfile();
-  updateActivePreset();
 }
 
 /* ============ UI ============ */
@@ -621,7 +610,6 @@ const $playBtn = document.getElementById('play-btn');
 const $playLabel = document.getElementById('play-label');
 const $playIcon = document.getElementById('play-icon');
 const $profile = document.getElementById('profile');
-const $presets = document.getElementById('presets');
 const $ticks   = document.getElementById('ticks');
 
 function fmt(x, d=2){
@@ -659,37 +647,7 @@ function renderUI(){
   $regimeNote.textContent = r.n;
 }
 
-/* ---- Presets ---- */
-const PRESETS = [
-  { label:'Low tide',      value:-0.73 },
-  { label:'West invert',   value:-0.70 },
-  { label:'East invert',   value:-0.474 },
-  { label:'Mid pipe (W)',  value:-0.243 },
-  { label:'West crown',    value: 0.214 },
-  { label:'East crown',    value: 0.440 },
-  { label:'Mean high',     value: 1.20 },
-  { label:'Road crest',    value: 1.80 },
-  { label:'Max tide',      value: 1.96 },
-];
-let activePresetIdx = -1;
-PRESETS.forEach((p, idx) => {
-  const b = document.createElement('button');
-  b.className = 'preset';
-  b.dataset.idx = idx;
-  b.innerHTML = `<span>${p.label}</span><span class="preset-elev">${fmt(p.value)}</span>`;
-  b.addEventListener('click', () => {
-    stopPlay();
-    setWater(p.value);
-    activePresetIdx = idx;
-    updateActivePreset();
-  });
-  $presets.appendChild(b);
-});
-function updateActivePreset(){
-  [...$presets.children].forEach((btn, i) => {
-    btn.classList.toggle('active', Math.abs(parseFloat(btn.lastChild.textContent.replace('−','-')) - waterLevel) < 0.005);
-  });
-}
+
 
 /* ---- Slider ticks ---- */
 const TICKS = [
@@ -729,29 +687,6 @@ function stopPlay(){
 $playBtn.addEventListener('click', () => { isPlaying ? stopPlay() : startPlay(); });
 
 /* ============ X-RAY / SOLID TOGGLE ============ */
-const $xrayBtn  = document.getElementById('view-xray');
-const $solidBtn = document.getElementById('view-solid');
-function setXray(on){
-  if (on){
-    embMat.opacity = 0.22;
-    embMat.depthWrite = false;
-    road.material.opacity = 0.55;
-    road.material.depthWrite = false;
-    embEdges.visible = true;
-  } else {
-    embMat.opacity = 1.0;
-    embMat.depthWrite = true;
-    road.material.opacity = 1.0;
-    road.material.depthWrite = true;
-    embEdges.visible = false;
-  }
-  embMat.needsUpdate = true;
-  road.material.needsUpdate = true;
-  $xrayBtn.classList.toggle('active', on);
-  $solidBtn.classList.toggle('active', !on);
-}
-$xrayBtn.addEventListener('click',  () => setXray(true));
-$solidBtn.addEventListener('click', () => setXray(false));
 
 /* ============ PROFILE SVG ============ */
 const NS = 'http://www.w3.org/2000/svg';
